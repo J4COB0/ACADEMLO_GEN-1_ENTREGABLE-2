@@ -12,8 +12,8 @@ const initModels = () => {
     User.hasMany(Review);
     Review.belongsTo(User);
 
-    // 1 User <----> 1 Order
-    User.hasOne(Order);
+    // 1 User <----> M Order
+    User.hasMany(Order);
     Order.belongsTo(User);
     
     // 1 Restaurant <----> M Meals

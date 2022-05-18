@@ -110,16 +110,6 @@ const createReview = catchAsync(async (req, res, next) => {
         return next(new AppError('The restaurant is not found given ID', 404));
     }
 
-    const review = await Review.findOne({
-        where: { userId: sessionUser.id, restaurantId: id, status: 'active' },
-    });
-    
-    if (review) {
-        return next(
-            new AppError('You have a review already in this restaurant', 400)
-        );
-    }
-
     const newReview = await Review.create({
         userId: sessionUser.id,
         comment,
@@ -134,12 +124,12 @@ const createReview = catchAsync(async (req, res, next) => {
 });
 
 const updateReview = catchAsync(async (req, res, next) => {
-    const { id } = req.params;
+    const { restaurantId, id } = req.params;
     const { sessionUser } = req;
     const data = filterObject(req.body, 'comment', 'rating');
 
     const restaurant = await Restaurant.findOne({
-        where: { id, status: 'active' },
+        where: { id: restaurantId, status: 'active' },
     });
 
     if (!restaurant) {
@@ -148,8 +138,8 @@ const updateReview = catchAsync(async (req, res, next) => {
 
     const review = await Review.findOne({
         where: {
-            userId: sessionUser.id,
-            restaurantId: restaurant.id,
+            id,
+            restaurantId,
             status: 'active',
         },
     });
@@ -172,11 +162,11 @@ const updateReview = catchAsync(async (req, res, next) => {
 });
 
 const deleteReview = catchAsync(async (req, res, next) => {
-    const { id } = req.params;
+    const { restaurantId, id } = req.params;
     const { sessionUser } = req;
 
     const restaurant = await Restaurant.findOne({
-        where: { id, status: 'active' },
+        where: { id: restaurantId, status: 'active' },
     });
 
     if (!restaurant) {
@@ -185,14 +175,22 @@ const deleteReview = catchAsync(async (req, res, next) => {
 
     const review = await Review.findOne({
         where: {
-            userId: sessionUser.id,
-            restaurantId: restaurant.id,
+            id,
+            restaurantId,
             status: 'active',
         },
     });
 
     if (!review) {
         return next(new AppError('The review doesnt exist', 404));
+    }
+
+    if (review.userId !== sessionUser.id) {
+        return next(
+            new AppError(
+                'You are not the owner of this review, you can not delete this file'
+            )
+        );
     }
 
     await review.update({ status: 'deleted' });

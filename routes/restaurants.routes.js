@@ -37,10 +37,12 @@ router
     .route('/:id')
     .patch(protectAdmin, updateRestaurant)
     .delete(protectAdmin, deleteRestaurant);
-router
-    .route('/reviews/:id')
-    .post(createReviewValidations, checkValidations, createReview)
-    .patch(updateReview)
-    .delete(deleteReview);
+router.post(
+    '/reviews/:id',
+    createReviewValidations,
+    checkValidations,
+    createReview
+);
+router.route('/reviews/:restaurantId/:id').patch(updateReview).delete(deleteReview);
 
 module.exports = { restauratsRouter: router };
